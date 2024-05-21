@@ -3,6 +3,7 @@ import express, { Express, Request, Response } from "express";
 import { EvmChain } from "@moralisweb3/common-evm-utils"
 import dotenv from "dotenv";
 import axios, { AxiosResponse, AxiosRequestConfig, RawAxiosRequestHeaders } from 'axios';
+import { ERC721Transfer } from '../data/erc721Interface'
 
 dotenv.config();
 
@@ -14,6 +15,7 @@ const MORALIS_API_KEY = process.env.MORALISAPIKEY;
 const address = "cronos.org";
 const chain = EvmChain.CRONOS;
 let latestBlock : number = 0;
+
 
 function errorMessage(error: unknown) {
   if (error instanceof Error)
@@ -63,7 +65,23 @@ async function getDemoData() {
       "fromBlock": curNumber,
       "toBlock": latestBlock
     });
-    console.log(response.raw)
+    if (response.raw.result === undefined || response.raw.result.length == 0)
+    {
+        console.log('no NFTs detected')
+        return
+    }
+    for (let transaction of response.raw.result){
+      let tokenTransfer : ERC721Transfer = {
+        blockNumber: transaction.block_number,
+        transactionHash: transaction.transaction_hash,
+        logIndex: transaction.log_index,
+        senderAddress: transaction.from_address,
+        receiverAddress: transaction.to_address,
+        tokenID: transaction.token_id,
+        contractAddress: transaction.token_address
+      }
+      console.log(tokenTransfer)
+    }
   }
   catch (e) {
     console.error(e);
