@@ -13,8 +13,11 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@moralisweb3/common-evm-utils": "^2.26.2",
+    "axios": "^1.7.1",
     "dotenv": "^16.4.5",
-    "express": "^4.19.2"
+    "express": "^4.19.2",
+    "moralis": "^2.26.2"
   },
   "devDependencies": {
     "@types/express": "^4.17.21",
