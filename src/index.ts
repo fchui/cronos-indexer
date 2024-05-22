@@ -3,16 +3,21 @@ import express, { Express, Request, Response } from "express";
 import { EvmChain } from "@moralisweb3/common-evm-utils"
 import dotenv from "dotenv";
 import axios, { AxiosResponse, AxiosRequestConfig, RawAxiosRequestHeaders } from 'axios';
-import { ERC721Transfer } from '../data/erc721Interface'
+import { ERC721Transfer } from '../data/erc721Interface';
+import Database, { Statement } from 'better-sqlite3';
 
 dotenv.config();
 
 const app: Express = express();
+
+const db = new Database('cronos.db')
+db.pragma('journal_mode = WAL');
+
+db.exec("CREATE TABLE IF NOT EXISTS transactions('blocknumber' varchar, 'transactionhash' varchar PRIMARY KEY, 'logindex' integer PRIMARY KEY, senderAddress varchar, receiverAddress varchar, tokenID varchar, contractAddress varchar)")
 const Moralis = require("moralis").default;
 const port = process.env.PORT || 3000;
 
 const MORALIS_API_KEY = process.env.MORALISAPIKEY;
-const address = "cronos.org";
 const chain = EvmChain.CRONOS;
 let latestBlock : number = 0;
 
@@ -60,16 +65,19 @@ async function getDemoData() {
   
   try {
     const response = await Moralis.EvmApi.nft.getNFTTransfersFromToBlock({
-      "chain": "0x19",
+      "chain": chain,
       "order": "DESC",
       "fromBlock": curNumber,
       "toBlock": latestBlock
     });
+    console.log(response.raw)
     if (response.raw.result === undefined || response.raw.result.length == 0)
     {
         console.log('no NFTs detected')
         return
     }
+
+    const stmt = db.prepare('INSERT OR IGNORE INTO transactions VALUES (?, ?, ?, ?, ?, ?, ?)');
     for (let transaction of response.raw.result){
       let tokenTransfer : ERC721Transfer = {
         blockNumber: transaction.block_number,
@@ -80,7 +88,7 @@ async function getDemoData() {
         tokenID: transaction.token_id,
         contractAddress: transaction.token_address
       }
-      console.log(tokenTransfer)
+    stmt.run(tokenTransfer.blockNumber, tokenTransfer.transactionHash, tokenTransfer.logIndex, tokenTransfer.senderAddress, tokenTransfer.receiverAddress, tokenTransfer.tokenID, tokenTransfer.contractAddress)
     }
   }
   catch (e) {
@@ -93,5 +101,6 @@ startServer();
 setTimeout(getDemoData, 5000);
 
 app.get("/", (req: Request, res: Response) => {
-  res.send("Express + TypeScript Server");
+  const row = db.prepare('SELECT * FROM transactions LIMIT 10').all();
+  res.json(row)
 });
