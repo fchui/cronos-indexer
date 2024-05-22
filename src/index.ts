@@ -95,7 +95,6 @@ async function getDemoData() {
         contractAddress: transaction.token_address
       }
     stmt.run(tokenTransfer.blockNumber, tokenTransfer.transactionHash, tokenTransfer.logIndex, tokenTransfer.senderAddress, tokenTransfer.receiverAddress, tokenTransfer.tokenID, tokenTransfer.contractAddress)
-    //console.log(tokenTransfer)
     }
   }
   catch (e) {
@@ -108,5 +107,6 @@ startServer();
 setTimeout(getDemoData, 5000);
 
 app.get("/", (req: Request, res: Response) => {
-  res.send("Express + TypeScript Server");
+  const row = db.prepare('SELECT * FROM transactions LIMIT 10').all();
+  res.json(row)
 });
