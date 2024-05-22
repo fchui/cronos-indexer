@@ -14,12 +14,6 @@ const db = new Database('cronos.db')
 db.pragma('journal_mode = WAL');
 
 db.exec("CREATE TABLE IF NOT EXISTS transactions('blocknumber' varchar, 'transactionhash' varchar PRIMARY KEY, 'logindex' integer PRIMARY KEY, senderAddress varchar, receiverAddress varchar, tokenID varchar, contractAddress varchar)")
-/*
-const stmt = db.prepare('INSERT OR IGNORE INTO users VALUES (?, ?, ?)');
-stmt.run('1', '2', '3')
-const row : any = db.prepare('SELECT * FROM users WHERE id = ?').get('3');
-console.log(row)
-*/
 const Moralis = require("moralis").default;
 const port = process.env.PORT || 3000;
 
